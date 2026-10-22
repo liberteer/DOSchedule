@@ -8,12 +8,30 @@
 //   - [o] ! See the dentist      event           [ø] = event has passed / attended
 //   - [-] Check that website     note
 //
-// Lines the app doesn't understand are kept as 'raw' entries so hand edits are never lost.
+// Lines the app doesn't understand are kept as 'raw' entries so hand edits are never lost; so are the
+// words you add to a day's heading and the blank lines between your own lines.
+//
+// Safety rules for saving (see _save):
+//   * a month file that changed on disk since it was read (another copy of the program, or a sync from
+//     another computer) is never overwritten: the save stops with an error whose code is 'ECHANGED';
+//   * a month file that is not UTF-8 text is shown but never rewritten (it would lose its accented letters);
+//   * every new version is written to a temporary file first, so a full disk changes nothing.
 
 const fs = require('fs');
 const path = require('path');
 const { fullWeekday } = require('./dates');
 const { tick } = require('./entry');
+const { readBytes, writeTemp, replaceWith, removeQuietly } = require('./files');
+
+const UTF8 = new TextDecoder('utf-8', { fatal: true });   // (also drops a byte-order mark at the start)
+const sameBytes = (a, b) => (a === null || b === null ? a === b : a.equals(b));
+const isBlank = (e) => e.kind === 'raw' && e.line === '';
+
+function changedOnDisk(file) {
+  const err = new Error(`${file} was changed outside DOSchedule (by another copy of it, or by a sync from another computer)`);
+  err.code = 'ECHANGED';
+  return err;
+}
 
 const FILE_RE = /^(\d{4}-\d{2})\.md$/;
 const YEAR_DIR_RE = /^\d{4}$/;
@@ -56,17 +74,27 @@ class Store {
     this.entries = [];          // in file order; includes {kind:'raw'} placeholders
     this.preamble = new Map();  // monthKey -> unparsed lines found before the first day section
     this.paths = new Map();     // monthKey -> file the month was loaded from
+    this.disk = new Map();      // monthKey -> the bytes of its file as last read or written (to notice changes by others)
+    this.headings = new Map();  // date -> its "## ..." line as written in the file (keeps words added to it)
+    this.notUtf8 = new Map();   // monthKey -> file that is not UTF-8 text: read, but never rewritten
     this.nextId = 1;
   }
 
   // Every month file (YYYY-MM.md) on disk: in year folders, or loose in the data folder.
   _monthFiles() { return monthFilesIn(this.dir); }
 
-  // Read everything again from disk (e.g. after a failed delete).
-  reload() {
+  _forget() {
     this.entries = [];
     this.preamble = new Map();
     this.paths = new Map();
+    this.disk = new Map();
+    this.headings = new Map();
+    this.notUtf8 = new Map();
+  }
+
+  // Read everything again from disk (e.g. after a failed delete, or after another copy changed a file).
+  reload() {
+    this._forget();
     this.load();
   }
 
@@ -89,9 +117,7 @@ class Store {
         try { fs.rmdirSync(path.join(this.dir, ent.name)); } catch { /* not empty: leave it */ }
       }
     }
-    this.entries = [];
-    this.preamble = new Map();
-    this.paths = new Map();
+    this._forget();
     return { entries, files };
   }
 
@@ -100,23 +126,49 @@ class Store {
     const files = this._monthFiles();
     for (const file of files) {
       const key = path.basename(file).slice(0, 7);
+      const bytes = fs.readFileSync(file);
+      let text;
+      try { text = UTF8.decode(bytes); } catch {
+        text = bytes.toString('utf8').replace(/^﻿/, '');
+        this.notUtf8.set(key, file);
+      }
       this.paths.set(key, file);
-      this._parse(fs.readFileSync(file, 'utf8'), key);
+      this.disk.set(key, bytes);
+      this._parse(text, key);
     }
-    // Entries hand-moved into the "wrong" month file: re-home them right away.
-    const touched = new Set();
+    // Entries hand-moved into the "wrong" month file: re-home them right away (where they go first).
+    const to = new Set();
+    const from = new Set();
     for (const e of this.entries) {
-      if (monthOf(e.date) !== e.loadedFrom) { touched.add(e.loadedFrom); touched.add(monthOf(e.date)); }
+      if (monthOf(e.date) !== e.loadedFrom) { to.add(monthOf(e.date)); from.add(e.loadedFrom); }
     }
-    if (touched.size) this._save([...touched]);
+    if (to.size) this._save([...to, ...from]);
+  }
+
+  // A line that is not an entry: kept in its day, or before the first day (the preamble).
+  _keep(line, date, key) {
+    if (date) this.entries.push({ id: this.nextId++, kind: 'raw', line, date, loadedFrom: key });
+    else {
+      if (!this.preamble.has(key)) this.preamble.set(key, []);
+      this.preamble.get(key).push(line);
+    }
   }
 
   _parse(text, key) {
     let date = null;
+    let blanks = 0;   // blank lines not yet kept: only those followed by another of your lines are
     for (const line of text.split(/\r?\n/)) {
-      if (!line.trim() || TITLE_RE.test(line)) continue;
+      if (!line.trim()) { blanks++; continue; }
+      if (TITLE_RE.test(line)) { blanks = 0; continue; }
       let m = SECTION_RE.exec(line);
-      if (m) { date = m[1]; continue; }
+      if (m) {
+        date = m[1];
+        if (!this.headings.has(date)) this.headings.set(date, line.trimEnd());
+        blanks = 0;                       // (_render writes the blank line before a heading itself)
+        continue;
+      }
+      if (date || this.preamble.has(key)) for (; blanks > 0; blanks--) this._keep('', date, key);
+      blanks = 0;
       m = ENTRY_RE.exec(line);
       if (m && date) {
         const mark = m[1].toLowerCase();
@@ -151,11 +203,8 @@ class Store {
           date,
           loadedFrom: key,
         });
-      } else if (date) {
-        this.entries.push({ id: this.nextId++, kind: 'raw', line, date, loadedFrom: key });
       } else {
-        if (!this.preamble.has(key)) this.preamble.set(key, []);
-        this.preamble.get(key).push(line);
+        this._keep(line, date, key);
       }
     }
   }
@@ -167,13 +216,17 @@ class Store {
   _render(key) {
     const mine = this.entries.filter((e) => monthOf(e.date) === key);
     const pre = this.preamble.get(key) || [];
-    if (!mine.length && !pre.length) return null;
+    const days = [...new Set(mine.map((e) => e.date))].sort().map((date) => {
+      const rows = mine.filter((e) => e.date === date);
+      while (rows.length && isBlank(rows[rows.length - 1])) rows.pop();   // the gap before the next day is added below
+      return { date, rows };
+    }).filter((d) => d.rows.some((e) => !isBlank(e)));
+    if (!days.length && !pre.length) return null;
     const lines = [`# ${key}`];
     if (pre.length) lines.push('', ...pre);
-    for (const date of [...new Set(mine.map((e) => e.date))].sort()) {
-      lines.push('', `## ${date} ${fullWeekday(date)}`);
-      for (const e of mine) {
-        if (e.date !== date) continue;
+    for (const { date, rows } of days) {
+      lines.push('', this.headings.get(date) || `## ${date} ${fullWeekday(date)}`);
+      for (const e of rows) {
         lines.push(e.kind === 'raw'
           ? e.line
           : `- [${markOf(e)}] ${e.priority ? `${'!'.repeat(e.priority)} ` : ''}${timePrefix(e)}${e.text}${workSuffix(e)}`);
@@ -182,26 +235,40 @@ class Store {
     return `${lines.join('\n')}\n`;
   }
 
+  // Write the given months, in the given order: callers put the month an entry moves TO first, so a failure
+  // half-way leaves it in two files, never in none. Throws before changing anything if a file cannot be
+  // changed safely (see the rules at the top of this file) or a new version cannot be written in full.
   _save(keys) {
-    for (const key of new Set(keys)) {
-      const file = this.pathFor(key);
-      const body = this._render(key);
-      if (body === null) {
-        if (fs.existsSync(file)) fs.unlinkSync(file);
-        this.paths.delete(key);
-        continue;
+    const plan = [...new Set(keys)].map((key) => ({ key, file: this.pathFor(key), body: this._render(key) }));
+    for (const p of plan) {
+      if (this.notUtf8.has(p.key)) {
+        throw new Error(`${p.file} is not saved as UTF-8 text, so DOSchedule does not change it. Save it as UTF-8 in a text editor, then start again`);
       }
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      const tmp = `${file}.tmp`;
-      try {
-        fs.writeFileSync(tmp, body, 'utf8');
-        fs.renameSync(tmp, file);
-      } catch (err) {
-        try { fs.unlinkSync(tmp); } catch { /* ignore */ }
-        fs.writeFileSync(file, body, 'utf8'); // e.g. file briefly locked by a sync client
+      p.before = readBytes(p.file);
+      if (!sameBytes(p.before, this.disk.has(p.key) ? this.disk.get(p.key) : null)) throw changedOnDisk(p.file);
+    }
+    const written = plan.filter((p) => p.body !== null);
+    try {
+      for (const p of written) {
+        fs.mkdirSync(path.dirname(p.file), { recursive: true });
+        p.tmp = writeTemp(p.file, p.body);
       }
-      this.paths.set(key, file);
-      for (const e of this.entries) if (monthOf(e.date) === key) e.loadedFrom = key;
+      for (const p of written) {
+        replaceWith(p.tmp, p.file, p.body, p.before);
+        p.tmp = null;
+        this.disk.set(p.key, Buffer.from(p.body, 'utf8'));
+        this.paths.set(p.key, p.file);
+        for (const e of this.entries) if (monthOf(e.date) === p.key) e.loadedFrom = p.key;
+      }
+    } catch (err) {
+      for (const p of written) if (p.tmp) removeQuietly(p.tmp);
+      throw err;
+    }
+    for (const p of plan) {
+      if (p.body !== null) continue;
+      if (p.before) fs.unlinkSync(p.file);   // nothing left in that month
+      this.paths.delete(p.key);
+      this.disk.delete(p.key);
     }
   }
 
@@ -218,6 +285,8 @@ class Store {
   }
 
   update(e, fields) {
+    const idx = this.entries.indexOf(e);
+    if (idx < 0) throw new Error('this entry no longer exists (it was deleted)');
     const before = { ...e };
     const oldMonth = monthOf(e.date);
     Object.assign(e, fields);
@@ -226,9 +295,8 @@ class Store {
     // sessions only survive for days that are still work days
     e.workDone = (e.workDone || []).filter((d) => e.work.includes(d));
     if (e.kind !== 'event' || !e.time) { e.time = null; e.end = null; }   // only events have times
-    const idx = this.entries.indexOf(e);
     if (e.date !== before.date) { this.entries.splice(idx, 1); this.entries.push(e); }
-    try { this._save([oldMonth, monthOf(e.date)]); } catch (err) {
+    try { this._save([monthOf(e.date), oldMonth]); } catch (err) {
       Object.assign(e, before);
       if (e.date !== fields.date && idx >= 0) { this.entries.pop(); this.entries.splice(idx, 0, e); }
       throw err;

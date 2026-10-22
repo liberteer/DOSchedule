@@ -65,6 +65,7 @@ class App {
     this.calFocus = 'grid';   // 'grid' (moving between days) | 'day' (selecting inside the day panel)
     this.dayIdx = 0;          // selected entry of the highlighted day (month: day panel, week: wide column)
     this.dayTop = 0;          // its scroll offset (maintained by the renderer)
+    this.warnNotUtf8();
   }
 
   get text() { return this.buf.join(''); }
@@ -146,6 +147,7 @@ class App {
         this.guard(() => {
           if (day) { this.store.removeWorkDay(e, day); this.say('Work session deleted'); }
           else { this.store.remove(e); this.say(isDeadlineTask(e) ? 'Deleted with all its work sessions' : 'Deleted'); }
+          if (this.editing === e) this.clearInput();   // its edit line is out of date now: never save it
         });
       } else this.say('Delete cancelled');
       if (this.screen !== 'main') this.clampDay();
@@ -512,6 +514,7 @@ class App {
       this.welcome = null;                                    // (a first-start question is answered by this, too)
       const copied = result ? ` ${result.copied} month ${result.copied === 1 ? 'file' : 'files'} copied.` : '';
       this.say(`Now using ${dir}.${copied} Your old notes stay in ${from}.${overridden ? ' (--data / DOSCHEDULE_DIR still win when given at start.)' : ''}`);
+      this.warnNotUtf8();
     } catch (err) {
       c.step = 'browse';
       c.note = `Could not switch: ${err.message}`;
@@ -535,6 +538,7 @@ class App {
       loc.source = auto.source;
       this.adoptStore(store);
       this.say(`Back to the automatic folder: ${auto.dir}. The notes in ${from} were not touched.`);
+      this.warnNotUtf8();
     } catch (err) {
       loc.hasPointer = true;
       try { writePointer(loc.pointerFile, from); } catch { /* keep going: report the original problem */ }
@@ -661,7 +665,32 @@ class App {
   }
 
   guard(fn) {
-    try { fn(); } catch (err) { this.say(`Could not save: ${err.message}`, 'err'); }
+    try { fn(); } catch (err) {
+      if (err.code === 'ECHANGED') this.reloadChanged();
+      else this.say(`Could not save: ${err.message}`, 'err');
+    }
+  }
+
+  // A month file was changed outside the program (another copy, or a sync from another computer), so the
+  // change was NOT saved. Read everything again so nothing of theirs is overwritten. A new entry that was
+  // being typed stays on the command line (Enter saves it now); an edit is dropped, its entry may be different.
+  reloadChanged() {
+    const line = this.editing ? null : { buf: this.buf, cur: this.cur };
+    try { this.store.reload(); } catch (err) { this.say(`Could not read the notes again: ${err.message}`, 'err'); return; }
+    this.keep = new Set();
+    this.selId = null;
+    this.confirm = null;
+    this.confirmDay = null;
+    this.search = null;
+    this.clearInput();
+    if (line) { this.buf = line.buf; this.cur = line.cur; }
+    this.say('Not saved: the notes changed on disk (another copy?). Reloaded - try again.', 'err');
+  }
+
+  // Month files that are not UTF-8 text are shown but never changed (see store.js): say which, once.
+  warnNotUtf8() {
+    const names = [...this.store.notUtf8.values()].map((f) => path.basename(f));
+    if (names.length) this.say(`Not UTF-8 text, so never changed: ${names.join(', ')}. Save as UTF-8 to edit.`, 'err');
   }
 
   clearInput() { this.buf = []; this.cur = 0; this.editing = null; }

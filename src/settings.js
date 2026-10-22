@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { THEMES, THEME_NAMES } = require('./themes');
+const { saveFile } = require('./files');
 
 const SCREEN_CHOICES = [
   { value: 'main', label: 'Main list', desc: 'Start on today\'s list of tasks, events and notes.' },
@@ -67,17 +68,10 @@ function loadSettings(dir) {
   return settings;
 }
 
+// Throws if the file cannot be saved; it is never left half-written (see files.js).
 function saveSettings(dir, settings) {
   fs.mkdirSync(dir, { recursive: true });
-  const file = fileOf(dir);
-  const tmp = `${file}.tmp`;
-  const body = `${JSON.stringify(settings, null, 2)}\n`;
-  try {
-    fs.writeFileSync(tmp, body, 'utf8');
-    fs.renameSync(tmp, file);
-  } catch {
-    fs.writeFileSync(file, body, 'utf8');   // e.g. file briefly locked by a sync client
-  }
+  saveFile(fileOf(dir), `${JSON.stringify(settings, null, 2)}\n`);
 }
 
 // The choice currently selected for an option.

@@ -43,7 +43,7 @@ function searchLines(app, W, H) {
 
   // how many
   let status;
-  if (!s.buf.join('').trim()) status = 'Type words to find. All of them must match; capitals and accents do not matter.';
+  if (!s.buf.join('').trim()) status = "Type 'n' find. Case and accents ignored.";   // short enough for the smallest terminal (42 columns of room)
   else if (!s.total) status = 'Nothing found.';
   else if (s.total > s.results.length) status = `${s.total} found, showing the first ${s.results.length}.   Enter opens the highlighted one.`;
   else status = `${s.total} found.   Enter opens the highlighted one.`;

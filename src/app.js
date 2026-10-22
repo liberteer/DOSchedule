@@ -339,7 +339,7 @@ class App {
 
   // ---- "Choose notes folder": a folder browser, then a question, then the switch ---------------------------
   // Nothing is ever moved or deleted: the old notes stay where they are, and "Use the automatic notes folder"
-  // (or doschedule --reset-folder) gives the earlier behaviour back.
+  // (or node doschedule.js --reset-folder) gives the earlier behaviour back.
 
   openChooser() {
     if (!this.location) { this.say('The notes folder cannot be changed from here', 'err'); return; }

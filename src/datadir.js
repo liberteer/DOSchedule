@@ -36,6 +36,20 @@ function readPointer(file) {
   } catch { return null; }
 }
 
+// What is wrong with that file, or null when nothing is (also when there is no such file). A damaged file
+// must not quietly mean "automatic": the notes would seem to be gone, and the welcome window could return.
+function pointerProblem(file) {
+  let text;
+  try { text = fs.readFileSync(file, 'utf8'); } catch (err) {
+    return err.code === 'ENOENT' ? null : `it cannot be read (${err.code || err.message})`;
+  }
+  let v;
+  try { v = JSON.parse(text); } catch { return 'it is not valid JSON'; }
+  if (!v || typeof v !== 'object' || Array.isArray(v) || !('folder' in v)) return 'it has no "folder" entry';
+  if (v.folder !== null && (typeof v.folder !== 'string' || !path.isAbsolute(v.folder))) return 'its folder is not a full path';
+  return null;
+}
+
 // Has the first-start question been answered? The file exists, with a folder or with null (= the automatic one).
 function isSetUp(file) {
   try { const v = JSON.parse(fs.readFileSync(file, 'utf8')); return Boolean(v) && typeof v === 'object' && !Array.isArray(v); } catch { return false; }
@@ -82,4 +96,4 @@ const SOURCE_TEXT = {
   user: 'the default folder for your user account',
 };
 
-module.exports = { resolveDataDir, userDataDir, pointerFile, readPointer, writePointer, isSetUp, forgetSetup, isFirstRun, SOURCE_TEXT };
+module.exports = { resolveDataDir, userDataDir, pointerFile, readPointer, pointerProblem, writePointer, isSetUp, forgetSetup, isFirstRun, SOURCE_TEXT };

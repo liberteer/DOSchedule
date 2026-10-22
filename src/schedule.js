@@ -23,7 +23,7 @@ const RE_WEEKDAY = new RegExp(String.raw`^(${WD})(?![a-z])(?:\+(\d{1,2})w(?![a-z
 const RE_WORDS = /^(today|tomorrow)(?![\w'’-])/i;
 const RE_PLUS = /^\+(\d{1,3})([dw])(?![a-z\d])/i;
 const RE_COUNT = /^(\d{1,2})d(?![a-z\d])/i;
-const RE_DOTS = /^(\d{1,2})\.(\d{1,2})\.?(?![\w.])/;
+const RE_DOTS = /^(\d{1,2})\.(\d{1,2})\.(?![\w.])/;   // "16.10." with its last dot: ">9.5" is a number, not a date
 const RE_SLASH = /^(\d{1,2})\/(\d{1,2})(?![\w/])/;
 
 // One date expression at the start of `rest` -> { len, node } | { error } | null

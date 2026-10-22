@@ -53,19 +53,48 @@ const ENTRY_RE = /^[-*]\s+\[( |x|X|o|O|ø|-)\]\s*(?:(!{1,3})(?:\s+|$))?(.*)$/;
 const monthOf = (date) => date.slice(0, 7);
 const markOf = (e) => (e.kind === 'task' ? (e.done ? 'x' : ' ') : e.kind === 'event' ? (e.done ? 'ø' : 'o') : '-');
 
-// Every month file (YYYY-MM.md) in a data folder: in year folders, or loose in the folder itself.
-function monthFilesIn(dir) {
-  const files = [];
+// Is this one of our month files? Its first line that is not blank is the title "# YYYY-MM" (an empty file
+// counts too: there is nothing in it to lose). Other files that merely have a month's name are someone
+// else's: they are never read, rewritten or deleted.
+function isNotesFile(file) {
+  let head;
+  try {
+    const fd = fs.openSync(file, 'r');
+    try {
+      const buf = Buffer.alloc(4096);
+      const n = fs.readSync(fd, buf, 0, buf.length, 0);
+      const bom = n >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf ? 3 : 0;
+      head = buf.subarray(bom, n).toString('latin1');
+    } finally { fs.closeSync(fd); }
+  } catch { return false; }
+  const first = head.split(/\r?\n/).find((line) => line.trim());
+  return first === undefined || TITLE_RE.test(first);
+}
+
+// Every month file (YYYY-MM.md) in a data folder, in year folders or loose in the folder itself.
+// -> { notes: [our month files], other: [files only named like one] }
+function scanMonthFiles(dir) {
+  const named = [];
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     if (ent.isDirectory() && YEAR_DIR_RE.test(ent.name)) {
       for (const f of fs.readdirSync(path.join(dir, ent.name))) {
-        if (FILE_RE.test(f)) files.push(path.join(dir, ent.name, f));
+        if (FILE_RE.test(f)) named.push(path.join(dir, ent.name, f));
       }
     } else if (ent.isFile() && FILE_RE.test(ent.name)) {
-      files.push(path.join(dir, ent.name));
+      named.push(path.join(dir, ent.name));
     }
   }
-  return files.sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
+  named.sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
+  const notes = [];
+  const other = [];
+  for (const f of named) (isNotesFile(f) ? notes : other).push(f);
+  return { notes, other };
+}
+
+const monthFilesIn = (dir) => scanMonthFiles(dir).notes;
+
+function notOurs(file, key) {
+  return new Error(`${file} is not a DOSchedule notes file (its first line is not "# ${key}"), so it is left alone. Move or rename it to save entries for ${key}`);
 }
 
 class Store {
@@ -98,9 +127,12 @@ class Store {
     this.load();
   }
 
-  // How much there is: real entries and month files.
+  // How much there is: real entries and month files. Never throws (a folder on a drive that was just
+  // unplugged simply counts no files).
   stats() {
-    return { entries: this.entries.filter((e) => e.kind !== 'raw').length, files: this._monthFiles().length };
+    let files = 0;
+    try { files = this._monthFiles().length; } catch { /* folder not reachable right now */ }
+    return { entries: this.entries.filter((e) => e.kind !== 'raw').length, files };
   }
 
   // Delete ALL data: every month file and the empty year folders, nothing else (settings.json and
@@ -124,12 +156,22 @@ class Store {
   load() {
     fs.mkdirSync(this.dir, { recursive: true });
     const files = this._monthFiles();
+    // Two files for one month (one loose, one in its year folder) would be read together and written back
+    // into only one of them: stop and let the person decide which one is right.
+    const seen = new Map();
+    for (const file of files) {
+      const key = path.basename(file).slice(0, 7);
+      if (seen.has(key)) {
+        throw new Error(`two files hold the notes of ${key}: ${seen.get(key)} and ${file}. Keep one of them (copy what you need from the other by hand), then start again`);
+      }
+      seen.set(key, file);
+    }
     for (const file of files) {
       const key = path.basename(file).slice(0, 7);
       const bytes = fs.readFileSync(file);
       let text;
       try { text = UTF8.decode(bytes); } catch {
-        text = bytes.toString('utf8').replace(/^﻿/, '');
+        text = bytes.toString('utf8').replace(/^\uFEFF/, '');
         this.notUtf8.set(key, file);
       }
       this.paths.set(key, file);
@@ -245,7 +287,11 @@ class Store {
         throw new Error(`${p.file} is not saved as UTF-8 text, so DOSchedule does not change it. Save it as UTF-8 in a text editor, then start again`);
       }
       p.before = readBytes(p.file);
-      if (!sameBytes(p.before, this.disk.has(p.key) ? this.disk.get(p.key) : null)) throw changedOnDisk(p.file);
+      const known = this.disk.has(p.key) ? this.disk.get(p.key) : null;
+      if (!sameBytes(p.before, known)) {
+        if (known === null && !isNotesFile(p.file)) throw notOurs(p.file, p.key);
+        throw changedOnDisk(p.file);
+      }
     }
     const written = plan.filter((p) => p.body !== null);
     try {
@@ -329,4 +375,4 @@ class Store {
   }
 }
 
-module.exports = { Store, monthFilesIn };
+module.exports = { Store, monthFilesIn, scanMonthFiles, isNotesFile };

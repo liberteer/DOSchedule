@@ -121,6 +121,17 @@ const NB = String.raw`(?<![\w./:-])`;           // not glued to the left of some
 const NA = String.raw`(?![\w/:-])(?!\.\d)`;     // not glued to the right of something
 
 const year = (s) => (s.length === 2 ? 2000 + Number(s) : Number(s));
+// A two-digit year only counts when it is close to now (last year .. ten years ahead): "18.12.10" or
+// "3/14/99" are far more likely a version number or a code than a date in 2010 or 2099.
+const nearYear = (s, today) => {
+  const y = year(s);
+  const ty = parseISO(today).y;
+  return s.length === 2 && (y < ty - 1 || y > ty + 10) ? null : y;
+};
+// "may" is also a verb, and a short month name after a number is often something else ("3 mar bars"):
+// without a year or an ordinal (3rd) such a date only counts at the end of the text or before punctuation.
+const SHORT_MONTH = (name) => name.toLowerCase() !== 'may' && name.length <= 4;
+const atEnd = (m) => /^\s*(?:$|[,.;:!?)])/.test(m.input.slice(m.index + m[0].length));
 
 // Returns {date} | {error:true} (looks like a date but impossible) | null (not a date).
 function ymd(y, m, d, strong) {
@@ -159,9 +170,9 @@ const PATTERNS = [
     re: new RegExp(String.raw`${NB}(\d{1,2})\.[ ]?(\d{1,2})\.[ ]?(\d{4})\.?${NA}`, 'gi'),
     resolve: (m) => dmy(+m[1], +m[2], +m[3], true),
   },
-  { // 14.3.26 (short year: only if it is a real date, otherwise left alone)
+  { // 14.3.26 (short year: only if it is a real date near now, otherwise left alone)
     re: new RegExp(String.raw`${NB}(\d{1,2})\.(\d{1,2})\.(\d{2})\.?${NA}`, 'gi'),
-    resolve: (m) => dmy(+m[1], +m[2], year(m[3]), false),
+    resolve: (m, today) => { const y = nearYear(m[3], today); return y === null ? null : dmy(+m[1], +m[2], y, false); },
   },
   { // 14-3-2026
     re: new RegExp(String.raw`${NB}(\d{1,2})-(\d{1,2})-(\d{4})${NA}`, 'gi'),
@@ -169,20 +180,24 @@ const PATTERNS = [
   },
   { // 3/14/26  3/14/2026
     re: new RegExp(String.raw`${NB}(\d{1,2})/(\d{1,2})/(\d{4}|\d{2})${NA}`, 'gi'),
-    resolve: (m) => mdy(+m[1], +m[2], year(m[3]), m[3].length === 4),
+    resolve: (m, today) => { const y = nearYear(m[3], today); return y === null ? null : mdy(+m[1], +m[2], y, m[3].length === 4); },
   },
-  { // march 14  march 14th, 2026  mar. 14
-    re: new RegExp(String.raw`(?<!\w)(${MONTH_RE})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?!\w)(?:,?\s+(\d{4})(?![\w/:-]))?`, 'gi'),
+  { // march 14  march 14th, 2026  mar. 14   ("may 3" only at the end, or with 3rd / a year)
+    re: new RegExp(String.raw`(?<!\w)(${MONTH_RE})\.?\s+(\d{1,2})(st|nd|rd|th)?(?!\w)(?:,?\s+(\d{4})(?![\w/:-]))?`, 'gi'),
     resolve: (m, today) => {
       const mon = MONTHS[m[1].toLowerCase()];
-      return m[3] ? ymd(+m[3], mon, +m[2], true) : yearless(mon, +m[2], today);
+      if (m[4]) return ymd(+m[4], mon, +m[2], true);
+      if (m[1].toLowerCase() === 'may' && !m[3] && !atEnd(m)) return null;
+      return yearless(mon, +m[2], today);
     },
   },
-  { // 14 march  14th of march 2026
-    re: new RegExp(String.raw`${NB}(\d{1,2})(?:st|nd|rd|th)?(?:\s+of)?\s+(${MONTH_RE})(?!\w)\.?(?:,?\s+(\d{4})(?![\w/:-]))?`, 'gi'),
+  { // 14 march  14th of march 2026   ("3 may", "3 mar" only at the end, or with 3rd / a year)
+    re: new RegExp(String.raw`${NB}(\d{1,2})(st|nd|rd|th)?(?:\s+of)?\s+(${MONTH_RE})(?!\w)\.?(?:,?\s+(\d{4})(?![\w/:-]))?`, 'gi'),
     resolve: (m, today) => {
-      const mon = MONTHS[m[2].toLowerCase()];
-      return m[3] ? ymd(+m[3], mon, +m[1], true) : yearless(mon, +m[1], today);
+      const mon = MONTHS[m[3].toLowerCase()];
+      if (m[4]) return ymd(+m[4], mon, +m[1], true);
+      if ((m[3].toLowerCase() === 'may' || SHORT_MONTH(m[3])) && !m[2] && !atEnd(m)) return null;
+      return yearless(mon, +m[1], today);
     },
   },
   { // today / tomorrow

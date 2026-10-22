@@ -26,7 +26,7 @@
 * **Everything on one screen.** Tasks, events, and notes sit together in one tidy list.
 * **Keyboard only.** Because it's all about an easy-to-understand workflow.
 * **Dates, in all the ways.** Tomorrow, >fri, 14.3.2026, 3/14/26, March 14, in 2 weeks, with live preview showing how your entry will be read.
-* **Priorities and times.** With color tags and 12/24hr formats.
+* **Priorities and times.** With color tags, and times typed as 14:30 or 2pm.
 * **Deadline tasks with sessions.** Because the deadline day isn't the work day.
 * **Month and week calendars.** Plan your week and month. Move stuff freely.
 * **Instantly find anything.** Results appear as you type. Capitals and accents don't matter.

@@ -16,9 +16,18 @@ function setTheme(name) { theme = THEMES[name] || THEMES.classic; }
 // Escape sequence for "plain text on the page": whatever follows an unstyled run is drawn with it.
 const reset = () => `${ESC}0;${theme.base};${theme.bg}m`;
 
+// Text from the notes files may hold control characters (a tab, or an escape sequence that a terminal
+// would obey: clear the screen, change the title, even set the clipboard). Every visible text goes through
+// sty() or raw(), and they draw each such character as one space, so the terminal only ever gets plain text
+// from your notes and columns stay in line. The files themselves are not changed.
+const CONTROL = /[\x00-\x1f\x7f-\x9f]/;
+const CONTROLS = /[\x00-\x1f\x7f-\x9f]/g;
+const plainText = (text) => (CONTROL.test(text) ? text.replace(CONTROLS, ' ') : text);
+
 // Style a run of text. sgr = foreground/attributes in classic codes; bg = '40' (the page) or
 // '44' (the highlighted-day block), also in classic codes.
 function sty(text, sgr, bg = '40') {
+  text = plainText(text);
   let fg = sgr.split(';').map((t) => (t in theme.fg ? theme.fg[t] : t)).filter((t) => t !== '').join(';');
   if (!fg) fg = theme.base;
   let back = theme.bg;
@@ -30,7 +39,7 @@ function sty(text, sgr, bg = '40') {
 }
 
 // Text in exact DOS colours (no recolouring): used by popups, whose palette comes from the theme.
-const raw = (text, [fg, bg]) => `${ESC}0;${fg};${bg}m${text}${reset()}`;
+const raw = (text, [fg, bg]) => `${ESC}0;${fg};${bg}m${plainText(text)}${reset()}`;
 const dialogColors = () => theme.dialog;
 
 // "Plain ASCII" frame style: every special drawing character is replaced by ONE keyboard character, so

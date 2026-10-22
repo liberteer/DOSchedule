@@ -61,7 +61,11 @@ node doschedule.js
 
 On Windows you can also double-click `doschedule.cmd`.
 
-That's all. Your notes are saved by themselves; nothing to set up. To leave, press **Ctrl+Q**.
+That's all. To leave, press **Ctrl+Q**.
+
+**The first time you start it,** a welcome window tells you which folder your notes will be saved in and lets you
+**use that folder** or **choose another one** (for example inside Dropbox). Press Enter on your answer. It asks only
+once; you can change the folder any time in the options (F10).
 
 **Windows may warn about an "Unknown publisher".** When you double-click `doschedule.cmd` from a downloaded ZIP,
 Windows may say "Windows protected your PC" or "The publisher could not be verified". It does that for any
@@ -73,11 +77,15 @@ certificate. Nothing is wrong with the file; you can read every line of it. You 
 * Or, before unzipping, right-click the ZIP file, choose **Properties**, tick **Unblock** and click OK. Files
   unzipped afterwards won't be questioned.
 
-**Where are my notes?** By default in your own user folder. On Windows that is
+**Where are my notes?** If you keep the suggested folder, in your own user folder. On Windows that is
 `C:\Users\<your name>\AppData\Roaming\DOSchedule` (the `AppData` folder is hidden; type `%APPDATA%` in the
 Explorer address bar to get to `Roaming`). To keep them somewhere else, for example in Dropbox so that your computers share
 them, press **F10** and choose **Choose notes folder...** (see [Options](#options-f10-or-ctrlo)). To back up your
 notes, copy that folder.
+
+**Updating.** Download the new version and unzip it anywhere. Your notes and your choice of folder stay: they belong
+to your Windows account, not to the program folder, so the new version finds them by itself and doesn't ask again.
+(If you keep a folder named `data` next to the program, copy it into the new program folder.)
 
 ## Your first minute
 

@@ -43,6 +43,7 @@ class App {
     this.optIdx = 0;          // highlighted row: an option, or (after the options) an action
     this.search = null;       // the Find popup: { buf, cur, results, total, sel, top, page } or null
     this.dialog = null;       // popup being shown: { step: 1 | 2, choice: 'yes' | 'no' } (delete all data)
+    this.welcome = null;      // the first-start question: { choice: 'use' | 'choose' } (see startWelcome)
     this.chooser = null;      // the notes-folder chooser popup (see openChooser)
     this.location = null;     // where the notes live, set by doschedule.js: { source, hasPointer, pointerFile, automatic(), platform, home }
     this.needsClear = true;   // the renderer clears the whole screen once (first frame, new colours)
@@ -131,6 +132,7 @@ class App {
 
   handleKey(key) {
     if (this.chooser) { this.chooserKey(key); return; }
+    if (this.welcome) { this.welcomeKey(key); return; }
     if (this.search) { this.searchKey(key); return; }
     if (this.dialog) { this.dialogKey(key); return; }
     if (this.help) { this.help = false; return; }
@@ -303,6 +305,34 @@ class App {
     if (name === 'deleteAll') this.dialog = { step: 1, choice: 'no' };   // always starts on [ No ]
     else if (name === 'chooseFolder') this.openChooser();
     else if (name === 'autoFolder') this.useAutomaticFolder();
+  }
+
+  // ---- First start: where should the notes live? ---------------------------------------------------------
+  // Shown once, to someone who has never set anything up. [ Use this folder ] keeps the automatic folder,
+  // [ Choose a folder... ] opens the folder browser (and comes back here if it is cancelled). Either way the
+  // answer is recorded (see writePointer), so the question never returns; later changes go through the Options.
+
+  startWelcome() { this.welcome = { choice: 'use' }; }
+
+  welcomeKey(key) {
+    const w = this.welcome;
+    switch (key.name) {
+      case 'ctrl-q': case 'ctrl-c': this.quit = true; break;
+      case 'left': case 'right': case 'tab': case 'shift-tab': w.choice = w.choice === 'use' ? 'choose' : 'use'; break;
+      case 'enter': if (w.choice === 'use') this.welcomeUseDefault(); else this.openChooser(); break;
+      case 'escape': this.welcomeUseDefault(); break;
+      case 'char':
+        if (key.ch.toLowerCase() === 'u') this.welcomeUseDefault();
+        else if (key.ch.toLowerCase() === 'c') this.openChooser();
+        break;
+      default: break;
+    }
+  }
+
+  welcomeUseDefault() {
+    try { writePointer(this.location.pointerFile, null); } catch (err) { this.say(`Could not save this choice: ${err.message}`, 'err'); return; }
+    this.welcome = null;
+    this.say(`Your notes are saved in ${this.store.dir}. You can change this any time: F10, Options.`);
   }
 
   // ---- "Choose notes folder": a folder browser, then a question, then the switch ---------------------------
@@ -479,6 +509,7 @@ class App {
       loc.hasPointer = true;
       this.adoptStore(store);
       this.chooser = null;
+      this.welcome = null;                                    // (a first-start question is answered by this, too)
       const copied = result ? ` ${result.copied} month ${result.copied === 1 ? 'file' : 'files'} copied.` : '';
       this.say(`Now using ${dir}.${copied} Your old notes stay in ${from}.${overridden ? ' (--data / DOSCHEDULE_DIR still win when given at start.)' : ''}`);
     } catch (err) {

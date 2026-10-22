@@ -9,7 +9,8 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { resolveDataDir, pointerFile, readPointer, writePointer, SOURCE_TEXT } = require('./src/datadir');
+const { resolveDataDir, pointerFile, readPointer, writePointer, isSetUp, isFirstRun, SOURCE_TEXT } = require('./src/datadir');
+const { notesIn } = require('./src/chooser');
 const { Store } = require('./src/store');
 const { App } = require('./src/app');
 const { parseKeys } = require('./src/keys');
@@ -77,10 +78,15 @@ function main() {
     process.exit(1);
   }
   const app = new App(store);
+  const file = pointerFile(where());
+  const setUp = isSetUp(file);
+  const notes = notesIn(dir).files;
+  if (isFirstRun({ source, setUp, notes })) app.startWelcome();                       // never set up, nothing here yet
+  else if (source === 'user' && !setUp) { try { writePointer(file, null); } catch { /* try again next time */ } }   // notes already there: no question needed
   app.location = {
     source,
     hasPointer: readPointer(pointerFile(where())) !== null,
-    pointerFile: pointerFile(where()),
+    pointerFile: file,
     automatic: () => dataDir(args, false),          // what "automatic" means right now
     platform: process.platform,
     home: os.homedir(),

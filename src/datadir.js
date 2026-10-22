@@ -9,7 +9,7 @@
 //   4. a `data` folder next to the program, if one exists (portable mode; also the folder of earlier versions)
 //   5. the per-user folder of the system (created on first save; on Windows %APPDATA%\DOSchedule)
 //
-// "Back to automatic" in the Options removes the remembered choice, which gives 4 and 5 again.
+// "Back to automatic" in the Options forgets the remembered choice, which gives 4 and 5 again.
 
 const fs = require('fs');
 const path = require('path');
@@ -36,17 +36,29 @@ function readPointer(file) {
   } catch { return null; }
 }
 
-// Remember a folder, or (null) forget it again. Throws if the file cannot be written.
+// Has the first-start question been answered? The file exists, with a folder or with null (= the automatic one).
+function isSetUp(file) {
+  try { const v = JSON.parse(fs.readFileSync(file, 'utf8')); return Boolean(v) && typeof v === 'object' && !Array.isArray(v); } catch { return false; }
+}
+
+// Remember a folder, or (null) the automatic one. Either way the file stays: it also records that the
+// first-start question has been answered, so the welcome screen never comes back by itself.
+// Throws if the file cannot be written.
 function writePointer(file, folder) {
-  if (folder == null) {
-    try { fs.unlinkSync(file); } catch (err) { if (err.code !== 'ENOENT') throw err; }
-    return;
-  }
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, `${JSON.stringify({ folder }, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(tmp, `${JSON.stringify({ folder: folder == null ? null : folder }, null, 2)}\n`, 'utf8');
   fs.renameSync(tmp, file);
 }
+
+// Remove the file altogether: the program then behaves as if it had never been started (welcome screen again).
+function forgetSetup(file) {
+  try { fs.unlinkSync(file); } catch (err) { if (err.code !== 'ENOENT') throw err; }
+}
+
+// The welcome screen is for someone who has never set anything up: no chosen folder, no setup record, no
+// data folder next to the program, no --data / variable, and no notes in the automatic folder yet.
+const isFirstRun = ({ source, setUp, notes }) => source === 'user' && !setUp && notes === 0;
 
 // -> { dir, source: 'argument' | 'environment' | 'chosen' | 'portable' | 'user' }
 function resolveDataDir({ argv = [], env = {}, platform = process.platform, home = '', appDir, isDir = () => false, pointer = null }) {
@@ -70,4 +82,4 @@ const SOURCE_TEXT = {
   user: 'the default folder for your user account',
 };
 
-module.exports = { resolveDataDir, userDataDir, pointerFile, readPointer, writePointer, SOURCE_TEXT };
+module.exports = { resolveDataDir, userDataDir, pointerFile, readPointer, writePointer, isSetUp, forgetSetup, isFirstRun, SOURCE_TEXT };

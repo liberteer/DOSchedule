@@ -12,6 +12,7 @@ const { bodyOptions, describeRow } = require('./ui-options');
 const { dialogLines } = require('./ui-dialog');
 const { searchLines } = require('./ui-search');
 const { chooserLines } = require('./ui-chooser');
+const { welcomeLines } = require('./ui-welcome');
 const { isDeadlineTask, isDoneOn, withTime } = require('./entry');
 const { bodyMonth, layout, MIN_W_MONTH, MIN_H_MONTH } = require('./ui-month');
 const { bodyWeek, MIN_W_WEEK, MIN_H_WEEK } = require('./ui-week');
@@ -193,7 +194,8 @@ function drawFrame(app, W, H) {
     items = app.chooser.step === 'confirm' ? ['←→ choose', 'Enter confirm', 'Esc back']
       : app.chooser.step === 'browse' ? ['↑↓ choose', 'Enter open', 'Bksp up', 'Space use this folder', 'N new folder', 'T type a path', 'Esc cancel']
         : ['type', 'Enter go', 'Esc back'];
-  } else if (app.search) items = ['type to search', '↑↓ choose', 'Enter go there', 'Esc close', 'PgUp/PgDn page'];
+  } else if (app.welcome) items = ['←→ choose', 'Enter confirm', 'U use this folder', 'C choose another folder'];
+  else if (app.search) items = ['type to search', '↑↓ choose', 'Enter go there', 'Esc close', 'PgUp/PgDn page'];
   else if (app.dialog) items = ['←→ choose', 'Enter confirm', 'Y yes', 'N or Esc no'];
   else if (options) items = ['↑↓ option', '←→ change', 'Enter change/open', 'Esc close', 'changes are saved at once'];
   else if (app.editing) items = ['EDITING', 'Enter save', 'Esc cancel'];
@@ -225,7 +227,10 @@ function drawFrame(app, W, H) {
   if (app.dialog) {                                  // a popup window on top of everything
     for (const d of dialogLines(app, W, H)) out += `${ESC}${d.row};${d.col}H${d.text}`;
   }
-  if (app.chooser) {                                 // the notes-folder chooser (only from the options screen)
+  if (app.welcome) {                                 // the first-start question
+    for (const l of welcomeLines(app, W, H)) out += `${ESC}${l.row};${l.col}H${l.text}`;
+  }
+  if (app.chooser) {                                 // the notes-folder chooser (only from the options screen, or from the first-start question)
     const popup = chooserLines(app, W, H);
     for (const l of popup.lines) out += `${ESC}${l.row};${l.col}H${l.text}`;
     if (popup.cursor) out += `${ESC}${popup.cursor.row};${popup.cursor.col}H${ESC}?25h`;

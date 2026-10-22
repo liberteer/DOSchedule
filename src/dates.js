@@ -130,7 +130,8 @@ const nearYear = (s, today) => {
 };
 // "may" is also a verb, and a short month name after a number is often something else ("3 mar bars"):
 // without a year or an ordinal (3rd) such a date only counts at the end of the text or before punctuation.
-const SHORT_MONTH = (name) => name.toLowerCase() !== 'may' && name.length <= 4;
+const SHORT_NAMES = new Set(['jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec']);
+const SHORT_MONTH = (name) => SHORT_NAMES.has(name.toLowerCase());   // (not "june" or "july": those are full names)
 const atEnd = (m) => /^\s*(?:$|[,.;:!?)])/.test(m.input.slice(m.index + m[0].length));
 
 // Returns {date} | {error:true} (looks like a date but impossible) | null (not a date).

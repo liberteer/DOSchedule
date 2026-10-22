@@ -1,6 +1,6 @@
 # DOSchedule
 
-**DOSchedule** is DOS/ASCII-themed planner for your terminal. Tasks, events and notes go into one simple list, with a month calendar and a week calendar behind it. Your notes are saved as plain text files (Markdown) on your own computer. I designed **DOSchedule** to help me solve one problem - continuous switching between different apps, calendars, notes, etc.
+**DOSchedule** is DOS/ASCII-themed planner for your terminal. Tasks, events and notes go into one list, with a month and a week calendar behind it. Notes are saved as plain text files (Markdown) on your own computer. I designed **DOSchedule** to solve one problem - continuous switching between different apps, calendars, notes, etc.
 
 ```
 ╔═ DOSchedule ══════════════════════════════════════════ Wed 14 Oct 2026  09:00 ═╗
@@ -43,25 +43,25 @@ DOSchedule is for you if you…
 * …**like bullet journals** but want something faster than pen and paper, without the fiddly parts of a modern to-do app.
 * …**care about your data.** Everything is plain text in a folder you control. There's no sign-up, and nothing is sent anywhere.
 
-It's probably not for you if you want a phone app, reminders or alarms, or sharing and team features. DOSchedule is a personal planner that runs on one computer (plus any folder you sync yourself). This means you're solely responsible for your data. Make backups. It's a healthy habit.
+It's not for you if you want a phone app, reminders or alarms, or team features. DOSchedule runs on one computer (plus any folder you sync yourself). This means you're solely responsible for your data. Make backups. It's a healthy habit.
 
 ## Get started
 
-You need [Node.js](https://nodejs.org) 18 or newer (free). Check with `node --version`.
+You need [Node.js](https://nodejs.org) 18 or newer (free). Check with `node --version`. If you try to run **DOSchedule** without Node.js, nothing will happen. 
 
-1. Download this project (green **Code** button, then **Download ZIP**) and unzip it anywhere.
-2. Open a terminal in that folder and type `node doschedule.js`. On Windows you can also double-click `doschedule.cmd`.
+1. Download this project: green **Code** button on GitHub, then **Download ZIP**. Unzip it anywhere.
+2. Open a terminal in that folder and type `node doschedule.js` or double-click `doschedule.cmd` on Windows.
 
 To leave, press **Ctrl+Q**.
 
 * **First start:** a welcome window says where your notes will be saved and lets you use that folder or choose another one. It asks only once.
 * **Where are my notes?** In `C:\Users\<your name>\AppData\Roaming\DOSchedule` unless you chose another folder (type `%APPDATA%` in the Explorer address bar to find `Roaming`). To back up, copy that folder.
-* **Updating:** download the new version and unzip it anywhere. Your notes and your choice of folder stay, because they belong to your Windows account, not to the program folder. (If you keep a folder named `data` next to the program, copy it into the new one.)
+* **Updating:** download the new version and unzip it anywhere. You don't need to overwrite the previous files. Your choice of notes folder is remembered. If you keep a notes folder next to the program, copy it into the new one.
 
 <details>
 <summary><b>Windows says "Unknown publisher"?</b></summary>
 
-When you double-click `doschedule.cmd` from a downloaded ZIP, Windows may say "Windows protected your PC". It does that for any file from the internet that isn't digitally signed; nothing is wrong with the file, and you can read every line of it. Either click **More info**, then **Run anyway**, or start it from a terminal with `node doschedule.js`, which doesn't ask. You can also right-click the ZIP before unzipping, choose **Properties**, tick **Unblock** and click OK.
+When you double-click `doschedule.cmd` from a downloaded ZIP, Windows may say "Windows protected your PC". It does that for any file from the internet that isn't digitally signed; nothing is wrong with the file, and you can read every line of it. Feel free to scan it with your antivirus, too! Either click **More info**, then **Run anyway**, or start it from a terminal with `node doschedule.js`, which doesn't ask.
 </details>
 
 ## Your first minute
@@ -76,6 +76,19 @@ Type at the bottom and press **Enter**:
 
 Then: **Up / Down** select an entry and **Enter** on an empty line ticks it off. **Tab** switches between the main list, month calendar and week calendar. **/** searches everything. **?** shows help. **F10** opens the options. **Ctrl+Q** quits.
 
+## Top 10 tips
+
+1. **Start with a symbol.** `x` for a task, `o` for an event, and `-` for a note.
+2. **Write the date.** There are many ways to do it. Without a date, the entry defaults to today.
+3. **Use `!`, `!!` and `!!!` for what matters.** Some themes also do color coding for priority tasks.
+4. **Tick with Enter.** Done items sink to the bottom. Made a mistake? Press Enter again to un-tick it, **F2** to edit, **Del** to delete (it asks first).
+5. **For deadlines, say when you'll work on it.** `x Write review >fri @wed @thu` puts the work on Wednesday and Thursday with the Friday deadline, and you tick each session separately.
+6. **Tab moves you around.** Press Tab to see the month and week views. If a message says "(not on today's list)", the entry was saved for another day.
+7. **Can't find something? Press `/`.** Results appear as you type. Old and finished entries are included.
+8. **Make it comfortable (F10).** Pick a color scheme, choose how many days of notes the main list shows, or switch to Plain ASCII.
+9. **Back up your notes!** Copy the folder periodically, or choose a folder in the cloud service. A synced folder also doubles as a backup. "Delete all data" can't be undone inside the program.
+10. **Notes are plain text, not encrypted.** DOSchedule NEVER connects to the internet, but anyone who can open your computer or your synced folder can read your notes. Don't store passwords or bank details in it, and get the program only from its official page: https://github.com/liberteer/DOSchedule.
+
 ## Writing entries
 
 | You type                      | Result                                                   |
@@ -85,7 +98,7 @@ Then: **Up / Down** select an entry and **Enter** on an empty line ticks it off.
 | `- check that website`        | note                                                     |
 | `x!!! text`  `x!! text`  `x! text` | high / medium / low priority (red, yellow, green) |
 
-A line above the command line shows **exactly how your entry will be read** before you press Enter. Ticked entries sink to the bottom, greyed out; the cursor stays on its row, so you can tick a run with Enter. Press Enter on a ticked entry to un-tick it.
+A line above the command line shows **exactly how your entry will be read** before you press Enter. Ticked entries sink to the bottom, greyed out. Press Enter on a ticked entry to un-tick it.
 
 **Dates** go anywhere in the text. No date means today (or the highlighted day on a calendar):
 
@@ -100,24 +113,26 @@ march 14    mar 14th   14 march
 **Deadline tasks:** `>` is the deadline, `@` are the work days. Each work day is a separate session that you tick off by itself.
 
 ```
-x!!! Write report >fri @wed @thu       deadline Friday, work Wednesday and Thursday
-x!!! Write report >fri @2d             the 2 working days before the deadline
+x!!! Write a review >fri @wed @thu       deadline Friday, work Wednesday and Thursday
+x!!! Write a review >fri @2d             the 2 working days before the deadline
 x Gym @mon,wed,fri                     no ">": the deadline is the last work day
 ```
 
-It shows on the main list on each work day (`due Fri 16 Oct`) and from the deadline on (red when overdue). Ticking on a work day ticks that session; ticking the last session, or ticking on the deadline day, finishes the whole task. Deleting on a work day deletes that session; on the deadline day it deletes the whole task. To move a session, look at that day, press **F2**, press **Ctrl+W** to remove the day, type the new one (`@thu`) and press Enter.
+It shows on the main list on each work day (`due Fri 16 Oct`) and from the deadline on (red when overdue). Ticking on a work day ticks that session; ticking the last session, or ticking on the deadline day, finishes the whole task. Deleting on a work day deletes that session; on the deadline day it deletes the whole task. 
+
+To move a session, look at that day, press **F2**, press **Ctrl+W** to remove the day, type the new one (`@thu`) and press Enter.
 
 ## The screens
 
 **Tab** goes main list, month, week (**Shift+Tab** goes back). Typing at the bottom adds an entry on all three.
 
-* **Main list (today):** today's tasks, **overdue** tasks (date in red), deadline tasks on their work days, today's events, and notes from today and the last 7 days (you can change this in the options). Long entries wrap, nothing is cut off. Entries for other days are saved and shown on the calendars.
-* **Month calendar:** weeks start on Monday. Arrows move the highlighted day, **PgUp / PgDn** change month, **Ctrl+T** jumps to today, **Enter** opens the day's list. Typing adds to the highlighted day. Needs a terminal of at least 70 x 16.
-* **Week calendar:** the highlighted day is a wide column with everything in full. Left / Right change day, Up / Down select an entry, **PgUp / PgDn** change week. Needs at least 76 x 16.
+* **Main list (today):** today's tasks, **overdue** tasks (date in red), deadline tasks on their work days, today's events, and notes from today and the last 7 days (you can change this in the options). Entries for other days are saved and shown on the calendars.
+* **Month calendar:** weeks start on Monday. Arrows move the highlighted day, **PgUp / PgDn** change month, **Ctrl+T** jumps to today, **Enter** opens the day's list. Typing adds to the highlighted day.
+* **Week calendar:** the highlighted day is a wide column with everything in full. Left / Right change day, Up / Down select an entry, **PgUp / PgDn** change week.
 
 ## Find
 
-Press **/** (or **Ctrl+F**) and type. All words must match, in any order, and capitals and accents don't matter (`cuprija` finds "ćuprija"). Up / Down choose, **Enter** goes there, **Esc** closes. Find never changes anything.
+Press **/** (or **Ctrl+F**) and type. All words must match, in any order, and capitals and accents don't matter (`cuprija` finds "ćuprija"). Up / Down choose, **Enter** goes there, **Esc** closes.
 
 ## Keys
 
@@ -135,7 +150,7 @@ Press **/** (or **Ctrl+F**) and type. All words must match, in any order, and ca
 | F10 or Ctrl+O              | options                                             |
 | Ctrl+Q                     | quit                                                |
 
-In the VS Code terminal Ctrl+F belongs to VS Code, so use `/`.
+If the terminal doesn't support Ctrl+F, use `/`.
 
 ## Options (F10)
 

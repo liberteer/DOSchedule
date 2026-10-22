@@ -25,7 +25,7 @@
 
 * **Everything on one screen.** Tasks, events, and notes sit together in one tidy list.
 * **Keyboard only.** Because it's all about an easy-to-understand workflow.
-* **Dates, in all the ways.** Tomorrow, Fri, 14.3.2026, 3/14/26, March 14, in 2 weeks, with live preview showing how your entry will be read.
+* **Dates, in all the ways.** Tomorrow, >fri, 14.3.2026, 3/14/26, March 14, in 2 weeks, with live preview showing how your entry will be read.
 * **Priorities and times.** With color tags and 12/24hr formats.
 * **Deadline tasks with sessions.** Because the deadline day isn't the work day.
 * **Month and week calendars.** Plan your week and month. Move stuff freely.
@@ -102,10 +102,12 @@ A line above the command line shows **exactly how your entry will be read** befo
 **Dates** go anywhere in the text. No date means today (or the highlighted day on a calendar):
 
 ```
-tomorrow    fri    in 3 days    in 2 weeks
+tomorrow    >fri    in 3 days    in 2 weeks
 14.3.2026   14.3.26   3/14/26   2026-03-14
 march 14    mar 14th   14 march
 ```
+
+A day of the week needs a `>` in front (`o Lunch >fri`), so ordinary words like "Sat" or "Sun" in your text stay text.
 
 **Event times** work on events only: `o Dentist 14:30`, `o Dentist 14:30-15:30`, `o Call 2pm`, `o Lunch at 12:30`. Events are sorted by time, and events without a time come first.
 

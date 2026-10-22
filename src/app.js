@@ -782,13 +782,26 @@ class App {
     const viewed = this.viewedDay();
     const onWorkDay = isDeadlineTask(e) && e.work.includes(viewed);
     const work = onWorkDay ? [...e.work.filter((d) => d !== viewed), viewed] : e.work;
+    const head = `${SYMBOLS[e.kind]}${'!'.repeat(e.priority)} `;
+    const time = e.time ? timeLabel(e) : '';
     const when = isDeadlineTask(e) ? `>${e.date} ${work.map((d) => `@${d}`).join(' ')}` : e.date;
-    const line = `${SYMBOLS[e.kind]}${'!'.repeat(e.priority)} ${e.text} ${when}${e.time ? ` ${timeLabel(e)}` : ''}`;
+    // The usual line ends with the date (and the time). If the text holds another date or time, that one would
+    // be read first, so pressing Enter would move the entry: then the time goes first and the date gets a ">".
+    const usual = `${head}${e.text} ${when}${time ? ` ${time}` : ''}`;
+    const line = this.readsBack(usual, e) ? usual : `${head}${time ? `${time} ` : ''}${e.text} ${isDeadlineTask(e) ? when : `>${e.date}`}`;
     this.buf = Array.from(line);
     this.cur = this.buf.length;
     this.say(onWorkDay
       ? 'Move this work day: Ctrl+W, then type its new day (e.g. @thu). Esc cancels'
       : 'Editing - Enter saves, Esc cancels');
+  }
+
+  // Would saving `line` unchanged give entry `e` back exactly as it is?
+  readsBack(line, e) {
+    const r = parseInput(line, this.today(), this.defaultDate());
+    const same = (a, b) => (a || null) === (b || null);
+    return r.ok && r.kind === e.kind && r.priority === e.priority && r.text === e.text && r.date === e.date
+      && same(r.time, e.time) && same(r.end, e.end) && [...r.work].sort().join() === [...(e.work || [])].sort().join();
   }
 
   // The day the user is looking at: the real today on the main list, the highlighted day on the

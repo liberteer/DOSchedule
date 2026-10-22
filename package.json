@@ -1,0 +1,35 @@
+{
+  "name": "doschedule",
+  "version": "1.0.0",
+  "description": "DOSchedule: a keyboard-only bullet-journal planner for the terminal, in the style of DOS",
+  "keywords": [
+    "planner",
+    "bullet-journal",
+    "todo",
+    "calendar",
+    "terminal",
+    "tui",
+    "cli",
+    "markdown",
+    "dos"
+  ],
+  "license": "MIT",
+  "main": "doschedule.js",
+  "bin": {
+    "doschedule": "doschedule.js"
+  },
+  "scripts": {
+    "start": "node doschedule.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "doschedule.js",
+    "doschedule.cmd",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "private": true
+}

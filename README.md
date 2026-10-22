@@ -1,6 +1,6 @@
 # DOSchedule
 
-**DOSchedule** is DOS/ASCII-themed planner for your terminal. Tasks, events and notes go into one list, with a month and a week calendar behind it. Notes are saved as plain text files (Markdown) on your own computer. I designed **DOSchedule** to solve one problem - continuous switching between different apps, calendars, notes, etc.
+**DOSchedule** is DOS/ASCII-themed planner for your terminal. I designed **DOSchedule** to solve the problem of continuous switching between different apps, calendars, notes, etc.
 
 ```
 ╔═ DOSchedule ══════════════════════════════════════════ Wed 14 Oct 2026  09:00 ═╗
@@ -30,7 +30,7 @@
 * **Deadline tasks with sessions.** Because the deadline day isn't the work day.
 * **Month and week calendars.** Plan your week and month. Move stuff freely.
 * **Instantly find anything.** Results appear as you type. Capitals and accents don't matter.
-* **Retro look.** Five color schemes paying homage to the classics. Also, a Plain ASCII mode for terminals that can't draw the box characters.
+* **Retro look.** Five color schemes paying homage to the classics, plus a Plain ASCII mode for terminals that can't draw the box characters.
 * **Your notes stay yours.** DOSchedule generates Markdown text files. No account, no cloud, no tracking.
 * **Free, and yours to edit.** Made for Windows; free and open source (MIT).
 
@@ -38,31 +38,30 @@
 
 DOSchedule is for you if you…
 
-* …**hate switching.** Your plan is a keystroke away, with no browser tab, no app window and no phone.
-* …**love retro design.** You miss DOS, Norton Commander, Turbo Pascal and amber screens, and you'd like a planner that looks like them and works.
-* …**like bullet journals** but want something faster than pen and paper, without the fiddly parts of a modern to-do app.
+* …**hate switching.** No browser tabs, no app windows and no phone.
+* …**love retro design.** You remember (and miss!) DOS, Norton Commander, and Turbo Pascal.
+* …**like bullet journaling** but want something faster than pen and paper, without the fiddly parts of a modern to-do app.
 * …**care about your data.** Everything is plain text in a folder you control. There's no sign-up, and nothing is sent anywhere.
 
 It's not for you if you want a phone app, reminders or alarms, or team features. DOSchedule runs on one computer (plus any folder you sync yourself). This means you're solely responsible for your data. Make backups. It's a healthy habit.
 
 ## Get started
 
-You need [Node.js](https://nodejs.org) 18 or newer (free). Check with `node --version`. If you try to run **DOSchedule** without Node.js, nothing will happen. 
+You need [Node.js](https://nodejs.org) 18 or newer (free). If you try to run **DOSchedule** without Node.js, nothing will happen. 
 
 1. Download this project: green **Code** button on GitHub, then **Download ZIP**. Unzip it anywhere.
-2. Open a terminal in that folder and type `node doschedule.js` or double-click `doschedule.cmd` on Windows.
-
-To leave, press **Ctrl+Q**.
-
-* **First start:** a welcome window says where your notes will be saved and lets you use that folder or choose another one. It asks only once.
-* **Where are my notes?** In `C:\Users\<your name>\AppData\Roaming\DOSchedule` unless you chose another folder (type `%APPDATA%` in the Explorer address bar to find `Roaming`). To back up, copy that folder.
-* **Updating:** download the new version and unzip it anywhere. You don't need to overwrite the previous files. Your choice of notes folder is remembered. If you keep a notes folder next to the program, copy it into the new one.
+2. Double-click `doschedule.cmd` on Windows or open a terminal in that folder and type `node doschedule.js`. 
 
 <details>
 <summary><b>Windows says "Unknown publisher"?</b></summary>
 
-When you double-click `doschedule.cmd` from a downloaded ZIP, Windows may say "Windows protected your PC". It does that for any file from the internet that isn't digitally signed; nothing is wrong with the file, and you can read every line of it. Feel free to scan it with your antivirus, too! Either click **More info**, then **Run anyway**, or start it from a terminal with `node doschedule.js`, which doesn't ask.
+When you double-click `doschedule.cmd`, Windows may say "Windows protected your PC" or display scary-looking security warning asking you if you want to run the software. It does that for any file from the internet that isn't digitally signed. Nothing is wrong with the file, you can read every line of it, and feel free to scan it with your antivirus, too! Either click **More info**, then **Run anyway**, or click **Run**, or start it from a terminal with `node doschedule.js`, which doesn't ask.
 </details>
+
+* **First start:** a welcome window says where your notes will be saved and lets you use that folder or choose another one. It asks only once.
+* **Where are my notes?** In `C:\Users\<your name>\AppData\Roaming\DOSchedule` unless you chose another folder (type `%APPDATA%` in the Explorer address bar to find `Roaming`). To back up, copy that folder.
+* **Updating:** download the new version and unzip it anywhere. You don't need to overwrite the previous files. Choice of notes folder is remembered. If you keep a notes folder next to the program, copy it into the new one.
+
 
 ## Your first minute
 
@@ -78,8 +77,8 @@ Then: **Up / Down** select an entry and **Enter** on an empty line ticks it off.
 
 ## Top 10 tips
 
-1. **Start with a symbol.** `x` for a task, `o` for an event, and `-` for a note.
-2. **Write the date.** There are many ways to do it. Without a date, the entry defaults to today.
+1. **Start with a symbol.** `x` for a task, `o` for an event, and `-` for a note. 
+2. **Write the date.** There are many ways to do it, anywhere in the sentence, after the starting symbol. Without a date, the entry defaults to today.
 3. **Use `!`, `!!` and `!!!` for what matters.** Some themes also do color coding for priority tasks.
 4. **Tick with Enter.** Done items sink to the bottom. Made a mistake? Press Enter again to un-tick it, **F2** to edit, **Del** to delete (it asks first).
 5. **For deadlines, say when you'll work on it.** `x Write review >fri @wed @thu` puts the work on Wednesday and Thursday with the Friday deadline, and you tick each session separately.

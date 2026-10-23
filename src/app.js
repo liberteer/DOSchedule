@@ -65,7 +65,7 @@ class App {
     this.calFocus = 'grid';   // 'grid' (moving between days) | 'day' (selecting inside the day panel)
     this.dayIdx = 0;          // selected entry of the highlighted day (month: day panel, week: wide column)
     this.dayTop = 0;          // its scroll offset (maintained by the renderer)
-    this.warnNotUtf8();
+    this.warnFiles();
   }
 
   get text() { return this.buf.join(''); }
@@ -514,7 +514,7 @@ class App {
       this.welcome = null;                                    // (a first-start question is answered by this, too)
       const copied = result ? ` ${result.copied} month ${result.copied === 1 ? 'file' : 'files'} copied.` : '';
       this.say(`Now using ${dir}.${copied} Your old notes stay in ${from}.${overridden ? ' (--data / DOSCHEDULE_DIR still win when given at start.)' : ''}`);
-      this.warnNotUtf8();
+      this.warnFiles();
     } catch (err) {
       c.step = 'browse';
       c.note = `Could not switch: ${err.message}`;
@@ -538,7 +538,7 @@ class App {
       loc.source = auto.source;
       this.adoptStore(store);
       this.say(`Back to the automatic folder: ${auto.dir}. The notes in ${from} were not touched.`);
-      this.warnNotUtf8();
+      this.warnFiles();
     } catch (err) {
       loc.hasPointer = true;
       try { writePointer(loc.pointerFile, from); } catch { /* keep going: report the original problem */ }
@@ -687,10 +687,16 @@ class App {
     this.say('Not saved: the notes changed on disk (another copy?). Reloaded - try again.', 'err');
   }
 
-  // Month files that are not UTF-8 text are shown but never changed (see store.js): say which, once.
-  warnNotUtf8() {
-    const names = [...this.store.notUtf8.values()].map((f) => path.basename(f));
-    if (names.length) this.say(`Not UTF-8 text, so never changed: ${names.join(', ')}. Save as UTF-8 to edit.`, 'err');
+  // Files in the notes folder that the program leaves alone (see store.js): say which, once, so no notes
+  // ever seem to vanish without a word.
+  warnFiles() {
+    const names = (files) => files.map((f) => path.basename(f)).join(', ');
+    const { notUtf8, skipped, copies } = this.store;
+    const parts = [];
+    if (copies.length) parts.push(`Copies made by a sync program, not shown (compare by hand): ${names(copies)}`);
+    if (skipped.length) parts.push(`Not shown, first line is not "# YYYY-MM": ${names(skipped)}`);
+    if (notUtf8.size) parts.push(`Not UTF-8 text, so never changed: ${names([...notUtf8.values()])}. Save as UTF-8 to edit`);
+    if (parts.length) this.say(`${parts.join('. ')}.`, 'err');
   }
 
   clearInput() { this.buf = []; this.cur = 0; this.editing = null; }

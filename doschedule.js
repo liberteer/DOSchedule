@@ -80,6 +80,13 @@ function main() {
     process.exit(1);
   }
   if (args.includes('--where')) { console.log(`${dir}\n(${SOURCE_TEXT[source]})`); return; }
+  // A folder named with --data or DOSCHEDULE_DIR must exist: a typo would otherwise create an empty folder
+  // and open an empty planner, as if the notes were gone.
+  if ((source === 'argument' || source === 'environment') && !isDir(dir)) {
+    console.error(`The notes folder ${source === 'argument' ? 'given with --data' : 'in DOSCHEDULE_DIR'} does not exist: ${dir}\n` +
+      'Check the spelling. For a new, empty notes folder, create the folder first.');
+    process.exit(1);
+  }
   // A folder chosen in the app must still be there (a drive may be missing): never start empty by surprise.
   if (source === 'chosen' && !isDir(dir)) {
     console.error(`The notes folder you chose is not available: ${dir}\n` +

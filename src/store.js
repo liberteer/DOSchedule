@@ -66,29 +66,40 @@ function isNotesFile(file) {
       const bom = n >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf ? 3 : 0;
       head = buf.subarray(bom, n).toString('latin1');
     } finally { fs.closeSync(fd); }
-  } catch { return false; }
+  } catch (err) {
+    // Gone: nothing to read. Any other problem (locked for a moment, no access): count it as ours, so that
+    // reading it fails loudly instead of the month quietly disappearing from the planner.
+    return err.code !== 'ENOENT';
+  }
   const first = head.split(/\r?\n/).find((line) => line.trim());
   return first === undefined || TITLE_RE.test(first);
 }
 
+// A copy of a month file made by a sync program when two computers changed it at once, e.g.
+// "2026-03 (Laptop's conflicted copy 2026-10-23).md" or "2026-03 (1).md". Never read: only reported.
+const COPY_RE = /^\d{4}-\d{2}\b.*(?:conflict|copy|\(\d+\)).*\.md$/i;
+
 // Every month file (YYYY-MM.md) in a data folder, in year folders or loose in the folder itself.
-// -> { notes: [our month files], other: [files only named like one] }
+// -> { notes: [our month files], other: [files only named like one], copies: [likely sync copies of one] }
 function scanMonthFiles(dir) {
   const named = [];
+  const copies = [];
+  const look = (folder, name) => {
+    if (FILE_RE.test(name)) named.push(path.join(folder, name));
+    else if (COPY_RE.test(name)) copies.push(path.join(folder, name));
+  };
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     if (ent.isDirectory() && YEAR_DIR_RE.test(ent.name)) {
-      for (const f of fs.readdirSync(path.join(dir, ent.name))) {
-        if (FILE_RE.test(f)) named.push(path.join(dir, ent.name, f));
-      }
-    } else if (ent.isFile() && FILE_RE.test(ent.name)) {
-      named.push(path.join(dir, ent.name));
+      for (const f of fs.readdirSync(path.join(dir, ent.name))) look(path.join(dir, ent.name), f);
+    } else if (ent.isFile()) {
+      look(dir, ent.name);
     }
   }
   named.sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
   const notes = [];
   const other = [];
   for (const f of named) (isNotesFile(f) ? notes : other).push(f);
-  return { notes, other };
+  return { notes, other, copies: copies.sort() };
 }
 
 const monthFilesIn = (dir) => scanMonthFiles(dir).notes;
@@ -106,6 +117,8 @@ class Store {
     this.disk = new Map();      // monthKey -> the bytes of its file as last read or written (to notice changes by others)
     this.headings = new Map();  // date -> its "## ..." line as written in the file (keeps words added to it)
     this.notUtf8 = new Map();   // monthKey -> file that is not UTF-8 text: read, but never rewritten
+    this.skipped = [];          // files named like a month file that are not ours (see isNotesFile): never read
+    this.copies = [];           // likely copies of month files made by a sync program (see COPY_RE): never read
     this.nextId = 1;
   }
 
@@ -119,12 +132,18 @@ class Store {
     this.disk = new Map();
     this.headings = new Map();
     this.notUtf8 = new Map();
+    this.skipped = [];
+    this.copies = [];
   }
 
   // Read everything again from disk (e.g. after a failed delete, or after another copy changed a file).
+  // The files are read into a new Store first: if that fails, this one keeps what it had (the screen does
+  // not go empty, and the check in _save still refuses to overwrite anything that changed).
   reload() {
-    this._forget();
-    this.load();
+    const fresh = new Store(this.dir);
+    fresh.nextId = this.nextId;
+    fresh.load();
+    for (const k of ['entries', 'preamble', 'paths', 'disk', 'headings', 'notUtf8', 'skipped', 'copies', 'nextId']) this[k] = fresh[k];
   }
 
   // How much there is: real entries and month files. Never throws (a folder on a drive that was just
@@ -155,7 +174,10 @@ class Store {
 
   load() {
     fs.mkdirSync(this.dir, { recursive: true });
-    const files = this._monthFiles();
+    const scan = scanMonthFiles(this.dir);
+    const files = scan.notes;
+    this.skipped = scan.other;
+    this.copies = scan.copies;
     // Two files for one month (one loose, one in its year folder) would be read together and written back
     // into only one of them: stop and let the person decide which one is right.
     const seen = new Map();

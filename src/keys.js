@@ -15,6 +15,7 @@ const CTRL = { 3: 'ctrl-c', 4: 'ctrl-d', 5: 'ctrl-e', 6: 'ctrl-f', 15: 'ctrl-o',
 // Either way line breaks and tabs become spaces. A line break at the very end of an unmarked paste stays Enter.
 const PASTE_START = '\x1b[200~';
 const PASTE_END = '\x1b[201~';
+const MIN_PASTE = 8;   // characters in one piece of input: more than anyone types in a fraction of a second
 
 function pastedKeys(text) {
   const keys = [];
@@ -56,9 +57,12 @@ function parseKeys(s, state = {}) {
 
 function typedKeys(s) {
   const keys = [];
-  // A line break or tab followed by text (not only by keys such as arrows) in this same piece: pasted.
+  // A line break or tab followed by text (not only by keys such as arrows) in this same piece: pasted, if the
+  // piece is long enough. While the program is busy for a moment (a locked file is retried for up to 0.2 s),
+  // the few keys typed meanwhile arrive together too, and their Enter must stay an Enter.
   const text = s.replace(/\x1b(?:\[\[[A-E]|\[[0-9;]*[@-~]|O[A-Za-z]|.)?/g, '');
-  if (/[\r\n\t][^]*[^\x00-\x1f\x7f]/.test(text)) {
+  const typed = text.replace(/[\x00-\x1f\x7f]/g, '').length;
+  if (typed >= MIN_PASTE && /[\r\n\t][^]*[^\x00-\x1f\x7f]/.test(text)) {
     const end = s.search(/[\r\n]+$/);                          // a final line break stays Enter
     const body = end >= 0 ? s.slice(0, end) : s;
     const keys2 = typedKeys(body.replace(/\r\n|[\r\n\t]/g, ' '));

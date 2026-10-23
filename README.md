@@ -47,7 +47,7 @@ It's not for you if you want a phone app, reminders or alarms, or team features.
 
 ## Get started
 
-You need [Node.js](https://nodejs.org) 18 or newer (free). If you try to run **DOSchedule** without Node.js, nothing will happen. 
+You need [Node.js](https://nodejs.org) 18 or newer (free). If Node.js is missing, `doschedule.cmd` says so and shows where to get it.
 
 1. Download this project: green **Code** button on GitHub, then **Download ZIP**. Unzip it anywhere.
 2. Double-click `doschedule.cmd` on Windows or open a terminal in that folder and type `node doschedule.js`. 
@@ -190,6 +190,8 @@ One Markdown file per month, with one section per day. You can read them in any 
 ```
 
 `[ ]` open task, `[x]` done, `[o]` event, `[ø]` event that has passed, `[-]` note. Everything is saved after every change.
+
+If you edit a file by hand, keep its first line (`# 2026-03`) and save it as UTF-8 text. Otherwise DOSchedule leaves that file alone and tells you so when it starts.
 
 ## License and author
 

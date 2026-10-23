@@ -28,10 +28,17 @@ function pointerFile({ platform, env, home }) {
   return path.posix.join(env.XDG_CONFIG_HOME || path.posix.join(home, '.config'), 'doschedule', 'folder.json');
 }
 
+// The text of that file. An editor such as Notepad may put a byte-order mark (U+FEFF) in front: it is dropped,
+// or the file would count as damaged.
+function readText(file) {
+  const text = fs.readFileSync(file, 'utf8');
+  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+}
+
 // The remembered folder, or null (no file, unreadable, or not an absolute path).
 function readPointer(file) {
   try {
-    const v = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const v = JSON.parse(readText(file));
     return v && typeof v.folder === 'string' && path.isAbsolute(v.folder) ? v.folder : null;
   } catch { return null; }
 }
@@ -40,7 +47,7 @@ function readPointer(file) {
 // must not quietly mean "automatic": the notes would seem to be gone, and the welcome window could return.
 function pointerProblem(file) {
   let text;
-  try { text = fs.readFileSync(file, 'utf8'); } catch (err) {
+  try { text = readText(file); } catch (err) {
     return err.code === 'ENOENT' ? null : `it cannot be read (${err.code || err.message})`;
   }
   let v;
@@ -52,7 +59,7 @@ function pointerProblem(file) {
 
 // Has the first-start question been answered? The file exists, with a folder or with null (= the automatic one).
 function isSetUp(file) {
-  try { const v = JSON.parse(fs.readFileSync(file, 'utf8')); return Boolean(v) && typeof v === 'object' && !Array.isArray(v); } catch { return false; }
+  try { const v = JSON.parse(readText(file)); return Boolean(v) && typeof v === 'object' && !Array.isArray(v); } catch { return false; }
 }
 
 // Remember a folder, or (null) the automatic one. Either way the file stays: it also records that the

@@ -85,7 +85,7 @@ Then: **Up / Down** select an entry and **Enter** on an empty line ticks it off.
 6. **Tab moves you around.** Press Tab to see the month and week views. If a message says "(not on today's list)", the entry was saved for another day.
 7. **Can't find something? Press `/`.** Results appear as you type. Old and finished entries are included.
 8. **Make it comfortable (F10).** Pick a color scheme, choose how many days of notes the main list shows, or switch to Plain ASCII.
-9. **Back up your notes!** Copy the folder periodically, or choose a folder in the cloud service. A synced folder also doubles as a backup. "Delete all data" can't be undone inside the program.
+9. **Back up your notes!** Copy the folder periodically. A folder in a cloud service helps too, but it's not a real backup: a deleted note is deleted everywhere. Use DOSchedule on one computer at a time, so two computers never change the same month at once. "Delete all data" can't be undone inside the program.
 10. **Notes are plain text, not encrypted.** DOSchedule NEVER connects to the internet, but anyone who can open your computer or your synced folder can read your notes. Don't store passwords or bank details in it, and get the program only from its official page: https://github.com/liberteer/DOSchedule.
 
 ## Writing entries

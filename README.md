@@ -111,7 +111,7 @@ A day of the week needs a `>` in front (`o Lunch >fri`), so ordinary words like 
 
 **Event times** work on events only: `o Dentist 14:30`, `o Dentist 14:30-15:30`, `o Call 2pm`, `o Lunch at 12:30`. Events are sorted by time, and events without a time come first.
 
-**Symbols:** colour emoji are not supported, because DOSchedule draws a DOS screen. They are ignored when you type or paste them, and shown as `?` if a notes file contains them. The DOS symbols work, for example ☺ (Alt+1), ♥ (Alt+3) and ♪ (Alt+13), typed with Alt and the number pad.
+**Symbols:** colour emoji are not supported, because DOSchedule draws a DOS screen. They are ignored when you type or paste them, and shown as `?` if a notes file contains them. The classic DOS symbols work, for example ☺ ♥ ♪ ► ■: press **Windows key + .** and open the **Ω** (symbols) tab, or copy and paste them. Alt+number codes don't work in the terminal: Alt+3, for example, arrives as Ctrl+C and quits DOSchedule.
 
 **Deadline tasks:** `>` is the deadline, `@` are the work days. Each work day is a separate session that you tick off by itself.
 

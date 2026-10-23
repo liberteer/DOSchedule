@@ -201,7 +201,8 @@ class App {
         if (!this.buf.length && key.ch === '/') { this.openSearch(); break; }   // no entry starts with /
         this.buf.splice(this.cur++, 0, key.ch);
         break;
-      case 'emoji': this.say('Colour emoji are not supported. DOS symbols are: ☺ Alt+1  ♥ Alt+3  ♪ Alt+13', 'err'); break;
+      // (No Alt+number codes here: in a terminal Alt+3 arrives as Ctrl+C and quits, Alt+13 as Enter.)
+      case 'emoji': this.say('Colour emoji are not supported. For ☺ ♥ ♪ use Windows key + . (Ω tab)', 'err'); break;
       default: break;
     }
     if (this.screen !== 'main') this.clampDay();

@@ -1,6 +1,6 @@
 # DOSchedule
 
-**DOSchedule** is DOS/ASCII-themed planner for your terminal. I designed **DOSchedule** to solve the problem of continuous switching between different apps, calendars, notes, etc.
+**DOSchedule** is a DOS/ASCII-themed planner for your terminal. I designed **DOSchedule** to solve the problem of continuous switching between different apps, calendars, notes, etc.
 
 ```
 ╔═ DOSchedule ══════════════════════════════════════════ Wed 14 Oct 2026  09:00 ═╗
@@ -28,10 +28,10 @@
 * **Dates, in all the ways.** Tomorrow, >fri, 14.3.2026, 3/14/26, March 14, in 2 weeks, with live preview showing how your entry will be read.
 * **Priorities and times.** With color tags, and times typed as 14:30 or 2pm.
 * **Deadline tasks with sessions.** Because the deadline day isn't the work day.
-* **Month and week calendars.** Plan your week and month. Move stuff freely.
+* **Month and week calendars.** Plan your week and month, and see them at a glance.
 * **Instantly find anything.** Results appear as you type. Capitals and accents don't matter.
 * **Retro look.** Five color schemes paying homage to the classics, plus a Plain ASCII mode for terminals that can't draw the box characters.
-* **Your notes stay yours.** DOSchedule generates Markdown text files. No account, no cloud, no tracking.
+* **Your notes stay yours.** DOSchedule saves your notes as Markdown text files. No account, no cloud, no tracking.
 * **Free, and yours to edit.** Made for Windows; free and open source (MIT).
 
 ## Who is it for?
@@ -49,18 +49,18 @@ It's not for you if you want a phone app, reminders or alarms, or team features.
 
 You need [Node.js](https://nodejs.org) 18 or newer (free). If Node.js is missing, `doschedule.cmd` says so and shows where to get it.
 
-1. Download this project: green **Code** button on GitHub, then **Download ZIP**. Unzip it anywhere.
+1. Download the latest version: under **Releases** on the right of the GitHub page, or with the green **Code** button, then **Download ZIP**. Unzip it anywhere.
 2. Double-click `doschedule.cmd` on Windows or open a terminal in that folder and type `node doschedule.js`. 
 
 <details>
 <summary><b>Windows says "Unknown publisher"?</b></summary>
 
-When you double-click `doschedule.cmd`, Windows may say "Windows protected your PC" or display scary-looking security warning asking you if you want to run the software. It does that for any file from the internet that isn't digitally signed. Nothing is wrong with the file, you can read every line of it, and feel free to scan it with your antivirus, too! Either click **More info**, then **Run anyway**, or click **Run**, or start it from a terminal with `node doschedule.js`, which doesn't ask.
+When you double-click `doschedule.cmd`, Windows may say "Windows protected your PC" or display a scary-looking security warning asking you if you want to run the software. It does that for any file from the internet that isn't digitally signed. Nothing is wrong with the file, you can read every line of it, and feel free to scan it with your antivirus, too! Either click **More info**, then **Run anyway**, or click **Run**, or start it from a terminal with `node doschedule.js`, which doesn't ask.
 </details>
 
 * **First start:** a welcome window says where your notes will be saved and lets you use that folder or choose another one. It asks only once.
 * **Where are my notes?** In `C:\Users\<your name>\AppData\Roaming\DOSchedule` unless you chose another folder (type `%APPDATA%` in the Explorer address bar to find `Roaming`). To back up, copy that folder.
-* **Updating:** download the new version and unzip it anywhere. You don't need to overwrite the previous files. Choice of notes folder is remembered. If you keep a notes folder next to the program, copy it into the new one.
+* **Updating:** download the new version and unzip it anywhere. You don't need to overwrite the previous files. Choice of notes folder is remembered. If you keep your notes in a `data` folder next to the program, copy that folder into the new one.
 
 
 ## Your first minute
@@ -79,7 +79,7 @@ Then: **Up / Down** select an entry and **Enter** on an empty line ticks it off.
 
 1. **Start with a symbol.** `x` for a task, `o` for an event, and `-` for a note. 
 2. **Write the date.** There are many ways to do it, anywhere in the sentence, after the starting symbol. Without a date, the entry defaults to today.
-3. **Use `!`, `!!` and `!!!` for what matters.** Some themes also do color coding for priority tasks.
+3. **Use `!`, `!!` and `!!!` for what matters.** Most color schemes also show priority in color.
 4. **Tick with Enter.** Done items sink to the bottom. Made a mistake? Press Enter again to un-tick it, **F2** to edit, **Del** to delete (it asks first).
 5. **For deadlines, say when you'll work on it.** `x Write review >fri @wed @thu` puts the work on Wednesday and Thursday with the Friday deadline, and you tick each session separately.
 6. **Tab moves you around.** Press Tab to see the month and week views. If a message says "(not on today's list)", the entry was saved for another day.
@@ -107,11 +107,11 @@ tomorrow    >fri    in 3 days    in 2 weeks
 march 14    mar 14th   14 march
 ```
 
-A day of the week needs a `>` in front (`o Lunch >fri`), so ordinary words like "Sat" or "Sun" in your text stay text.
+A day of the week needs a `>` (or `@`) in front (`o Lunch >fri`), so ordinary words like "Sat" or "Sun" in your text stay text.
 
 **Event times** work on events only: `o Dentist 14:30`, `o Dentist 14:30-15:30`, `o Call 2pm`, `o Lunch at 12:30`. Events are sorted by time, and events without a time come first.
 
-**Symbols:** colour emoji are not supported, because DOSchedule draws a DOS screen. They are ignored when you type or paste them, and shown as `?` if a notes file contains them. The classic DOS symbols work, for example ☺ ♥ ♪ ► ■: press **Windows key + .** and open the **Ω** (symbols) tab, or copy and paste them. Alt+number codes don't work in the terminal: Alt+3, for example, arrives as Ctrl+C and quits DOSchedule.
+**Symbols:** color emoji are not supported, because DOSchedule draws a DOS screen. They are ignored when you type or paste them, and shown as `?` if a notes file contains them. The classic DOS symbols work, for example ☺ ♥ ♪ ► ■: press **Windows key + .** and open the **Ω** (symbols) tab, or copy and paste them. Alt+number codes don't work in the terminal: Alt+3, for example, arrives as Ctrl+C and quits DOSchedule.
 
 **Deadline tasks:** `>` is the deadline, `@` are the work days. Each work day is a separate session that you tick off by itself.
 
@@ -165,7 +165,7 @@ Up / Down pick a row, Left / Right change it, Esc closes. Changes are saved at o
 * **Start with:** the main list, the month calendar or the week calendar.
 * **Choose notes folder...:** opens a folder browser. **Enter** opens a folder, **Backspace** goes up, **N** makes a new folder, **T** lets you type a path, and **Space** uses the folder shown at the top. You can copy your notes along. Nothing is ever moved or deleted.
 * **Use the automatic notes folder:** goes back to the default folder.
-* **Delete all data...:** deletes every entry, after two confirmations. **[ No ]** is selected by default.
+* **Delete all data...:** deletes all your notes files, including anything you wrote in them by hand, after two confirmations. **[ No ]** is selected by default.
 
 ## Command line
 
@@ -194,6 +194,18 @@ One Markdown file per month, with one section per day. You can read them in any 
 `[ ]` open task, `[x]` done, `[o]` event, `[ø]` event that has passed, `[-]` note. Everything is saved after every change.
 
 If you edit a file by hand, keep its first line (`# 2026-03`) and save it as UTF-8 text. Otherwise DOSchedule leaves that file alone and tells you so when it starts.
+
+## The philosophy behind DOSchedule
+
+I built DOSchedule for myself, and I use it every day to solve my own workflow problem. Now that I trust it with my notes, I'm sharing it publicly in the hope that it helps someone else too.
+
+Although I understand certain code elements and what they do, I am not a developer. I built DOSchedule with Claude, an AI assistant. I have ideas and a clear picture of the tools I need; I design it in words and drawings, and Claude does the code. Then we test every change, and nothing ships before I've used it in my own daily work.
+
+I know many people are wary of "vibe coding" and "AI slop", and I understand why. DOSchedule isn't meant to add to that pile: it's a tool I use, and I'll keep using, testing, and developing it for as long as it's part of my day.
+
+I know it's common sense, but it's worth repeating every so often: back up your work, and since these notes aren't encrypted, never store anything sensitive, like passwords or bank details.
+
+If you use DOSchedule, I'd love to hear from you: ideas, wishes, problems, anything. Open an issue on GitHub; I read every one.
 
 ## License and author
 

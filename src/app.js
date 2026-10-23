@@ -201,6 +201,7 @@ class App {
         if (!this.buf.length && key.ch === '/') { this.openSearch(); break; }   // no entry starts with /
         this.buf.splice(this.cur++, 0, key.ch);
         break;
+      case 'emoji': this.say('Colour emoji are not supported. DOS symbols are: ☺ Alt+1  ♥ Alt+3  ♪ Alt+13', 'err'); break;
       default: break;
     }
     if (this.screen !== 'main') this.clampDay();

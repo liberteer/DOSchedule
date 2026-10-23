@@ -6,6 +6,7 @@ const CSI_FINAL = { A: 'up', B: 'down', C: 'right', D: 'left', H: 'home', F: 'en
 const TILDE = { 1: 'home', 3: 'delete', 4: 'end', 5: 'pageup', 6: 'pagedown', 7: 'home', 8: 'end', 11: 'f1', 12: 'f2', 18: 'f7', 21: 'f10' };
 const CONSOLE_FN = { A: 'f1', B: 'f2' };  // ESC [ [ A
 const CTRL = { 3: 'ctrl-c', 4: 'ctrl-d', 5: 'ctrl-e', 6: 'ctrl-f', 15: 'ctrl-o', 17: 'ctrl-q', 20: 'ctrl-t', 21: 'ctrl-u', 23: 'ctrl-w' };
+const { withoutEmoji } = require('./emoji');
 
 // Pasted text must never press Enter (that would save each line, and an empty line would tick the selected
 // entry) or Tab. Two ways to tell it from typing:
@@ -27,10 +28,19 @@ function pastedKeys(text) {
 }
 
 // `state` (one object kept by the caller) remembers an unfinished marked paste between pieces of input.
+// Colour emoji are taken out first (see emoji.js); if there were any, the keys end with { name: 'emoji' }
+// so the app can say why nothing appeared.
 function parseKeys(s, state = {}) {
-  const keys = [];
-  let rest = (state.carry || '') + s;
+  const clean = withoutEmoji((state.carry || '') + s);
   state.carry = '';
+  const keys = readKeys(clean.text, state);
+  if (clean.removed) keys.push({ name: 'emoji' });
+  return keys;
+}
+
+function readKeys(input, state) {
+  const keys = [];
+  let rest = input;
   while (rest) {
     if (state.paste) {
       const end = rest.indexOf(PASTE_END);

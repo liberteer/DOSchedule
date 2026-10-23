@@ -2,6 +2,7 @@
 // Drawing primitives shared by all screens: colours, padding, wrapping, entry glyphs.
 
 const { isDoneOn } = require('./entry');
+const { screenText } = require('./emoji');
 
 const { THEMES } = require('./themes');
 
@@ -22,7 +23,12 @@ const reset = () => `${ESC}0;${theme.base};${theme.bg}m`;
 // from your notes and columns stay in line. The files themselves are not changed.
 const CONTROL = /[\x00-\x1f\x7f-\x9f]/;
 const CONTROLS = /[\x00-\x1f\x7f-\x9f]/g;
-const plainText = (text) => (CONTROL.test(text) ? text.replace(CONTROLS, ' ') : text);
+// Colour emoji become one "?" (see emoji.js). fit() and wrap() do that BEFORE measuring, because one "?" may
+// stand for several characters; here it is only a last safety net.
+const plainText = (text) => {
+  const t = screenText(text);
+  return CONTROL.test(t) ? t.replace(CONTROLS, ' ') : t;
+};
 
 // Style a run of text. sgr = foreground/attributes in classic codes; bg = '40' (the page) or
 // '44' (the highlighted-day block), also in classic codes.
@@ -58,6 +64,7 @@ const len = (s) => Array.from(s).length;
 // Truncate with a » (an original DOS character), or pad with spaces, to exactly w columns.
 function fit(s, w) {
   if (w <= 0) return '';
+  s = screenText(s);
   const a = Array.from(s);
   if (a.length > w) return `${a.slice(0, w - 1).join('')}»`;
   return s + ' '.repeat(w - a.length);
@@ -69,7 +76,7 @@ function wrap(text, w, first = w) {
   const lines = [];
   let cur = '';
   const limit = () => Math.max(1, lines.length === 0 ? first : w);
-  for (let word of text.split(/\s+/).filter(Boolean)) {
+  for (let word of screenText(text).split(/\s+/).filter(Boolean)) {
     while (len(word) > limit()) {
       if (cur) { lines.push(cur); cur = ''; }
       const n = limit();

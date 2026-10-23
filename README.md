@@ -2,24 +2,7 @@
 
 **DOSchedule** is a DOS/ASCII-themed planner for your terminal. I designed **DOSchedule** to solve the problem of continuous switching between different apps, calendars, notes, etc.
 
-```
-╔═ DOSchedule ══════════════════════════════════════════ Wed 14 Oct 2026  09:00 ═╗
-║ ── TASKS (2) ───────────────────────────────────────────────────────────────── ║
-║ > [ ] !!! Write quarterly report                                due Fri 16 Oct ║
-║   [ ] !   Call the bank                                                        ║
-║                                                                                ║
-║ ── EVENTS (1) ──────────────────────────────────────────────────────────────── ║
-║    o      14:30-15:30 Dentist                                                  ║
-║                                                                                ║
-║ ── NOTES (1) ───────────────────────────────────────────────────────────────── ║
-║    -      Ask Sam about the trip                                               ║
-║                                                                                ║
-║                                                                                ║
-╠════════════════════════════════════════════════════════════════════════════════╣
-║ x task   o event   - note   ! priority   date at the end, e.g.  o Dentist 14.» ║
-║ >                                                                              ║
-╚════════════════════════════════════════════════════════════════════════════════╝
-```
+![DOSchedule's main list: today's tasks, events and notes on one screen](promo%20images/DOSchedule%20screenshot%201%20-%20main%20task%20window.png)
 
 ## Features
 
@@ -44,6 +27,20 @@ DOSchedule is for you if you…
 * …**care about your data.** Everything is plain text in a folder you control. There's no sign-up, and nothing is sent anywhere.
 
 It's not for you if you want a phone app, reminders or alarms, or team features. DOSchedule runs on one computer (plus any folder you sync yourself). This means you're solely responsible for your data. Make backups. It's a healthy habit.
+
+## Screenshots
+
+The month calendar, with the highlighted day in full on the right:
+
+![The month calendar](promo%20images/DOSchedule%20screenshot%202%20-%20monthly%20window.png)
+
+The week view in the Light color scheme, with the Plain ASCII frame style:
+
+![The week view, Light color scheme, Plain ASCII frames](promo%20images/DOSchedule%20screenshot%203%20-%20weekly%20view,%20light%20theme%20with%20ascii.png)
+
+Find, in the Amber color scheme: results appear as you type.
+
+![Find, Amber color scheme](promo%20images/DOSchedule%20screenshot%204%20-%20search%20window,%20amber%20theme%20with%20ascii.png)
 
 ## Get started
 
